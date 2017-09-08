@@ -3,6 +3,10 @@
     <cache-path
         name="update_app_cache_files"
         path="/update" />
+
+    <external-path
+        name="external_files"
+        path="." />
     <external-path
         name="update_app_external_files"
         path="/" />
