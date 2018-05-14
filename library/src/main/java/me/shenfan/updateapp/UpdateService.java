@@ -1,6 +1,7 @@
 package me.shenfan.updateapp;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -10,6 +11,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Binder;
@@ -144,7 +146,7 @@ public class UpdateService extends Service {
 
     private static String getSaveFileName(String downloadUrl) {
         if (downloadUrl == null || TextUtils.isEmpty(downloadUrl)) {
-            return  System.currentTimeMillis() + ".apk";
+            return System.currentTimeMillis() + ".apk";
         }
         return downloadUrl.substring(downloadUrl.lastIndexOf("/"));
     }
@@ -272,8 +274,18 @@ public class UpdateService extends Service {
     }
 
     private void buildNotification() {
+        NotificationChannel channel = null;
+        //8.0的NotificationChannel策略
+        if (Build.VERSION.SDK_INT >= 26) {
+            channel = new NotificationChannel("1",
+                    "RunningShopUpdate", NotificationManager.IMPORTANCE_NONE);
+            channel.enableLights(false); //是否在桌面icon右上角展示小红点
+            channel.setLightColor(Color.TRANSPARENT); //小红点颜色
+            channel.setShowBadge(false); //是否在久按桌面图标时显示此渠道的通知
+        }
         manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        builder = new NotificationCompat.Builder(this);
+
+        builder = new NotificationCompat.Builder(this, "1");
         builder.setContentTitle(getString(R.string.update_app_model_prepare, appName))
                 .setWhen(System.currentTimeMillis())
                 .setProgress(100, 1, false)
@@ -281,7 +293,9 @@ public class UpdateService extends Service {
                 .setLargeIcon(BitmapFactory.decodeResource(
                         getResources(), icoResId))
                 .setDefaults(downloadNotificationFlag);
-
+        if (Build.VERSION.SDK_INT >= 26) {
+            manager.createNotificationChannel(channel);
+        }
         manager.notify(notifyId, builder.build());
     }
 
